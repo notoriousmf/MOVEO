@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>MOVEO</title>
+<style>
+:root{--y:#FFD21F;--k:#000;--t:#222;--g:#f2f2ee;--l:#d6d6d0;--m:#6b6b66}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--g);color:var(--t)}
+header{background:var(--k);color:var(--y);padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
+header b{font-size:24px;letter-spacing:3px}
+header a{color:var(--y);text-decoration:none;margin-left:16px;font-size:15px}
+main{max-width:720px;margin:0 auto;padding:14px 14px 60px}
+h2{margin:8px 0 4px;font-size:24px}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--l);border-radius:8px;font:inherit;background:#fff;color:var(--t)}
+textarea{min-height:80px}
+label{display:block;margin:10px 0;font-size:14px;color:var(--m)}
+.card{display:block;background:#fff;border-radius:10px;padding:12px;margin:8px 0;text-decoration:none;color:inherit;border-left:6px solid var(--y)}
+.card small{display:block;color:var(--m)}
+.tag{float:right;font-size:12px;background:var(--k);color:var(--y);padding:2px 9px;border-radius:10px}
+.btn{display:block;background:var(--y);color:var(--k);font:inherit;font-weight:700;padding:13px 16px;border:0;border-radius:10px;text-align:center;text-decoration:none;margin:10px 0;cursor:pointer;width:100%}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.chips{display:flex;gap:8px;margin:10px 0}
+.chip{padding:8px 14px;border:1px solid var(--l);border-radius:20px;background:#fff;font:inherit;cursor:pointer}
+.chip.on{background:var(--k);color:var(--y);border-color:var(--k)}
+.tabs{display:flex;border-bottom:2px solid var(--l);margin:12px 0}
+.tabs a{flex:1;text-align:center;padding:10px;text-decoration:none;color:var(--m)}
+.tabs a.on{color:var(--k);font-weight:700;border-bottom:4px solid var(--y);margin-bottom:-2px}
+.back{display:inline-block;margin:4px 0;color:var(--t);text-decoration:none}
+.m{color:var(--m)}
+.lnk{background:none;border:0;color:#a02020;padding:6px 0;font:inherit;cursor:pointer;text-decoration:underline}
+.ck{display:flex;gap:8px;align-items:center;color:var(--t);font-size:15px;margin:6px 0}
+.ck input{width:auto}.ck small{color:var(--m)}
+.xl{max-height:42vh;overflow:auto;background:#fff;border-radius:8px;padding:4px 10px;margin:8px 0}
+.cap{background:#fff;border-radius:10px;padding:10px;margin:8px 0}
+.cap input[name^=n]{margin-top:8px}
+.sc{display:flex;gap:6px;margin-top:6px}
+.sc label{margin:0;flex:1}.sc input{display:none}
+.sc span{display:block;text-align:center;padding:10px 0;border:1px solid var(--l);border-radius:8px;background:#fff;color:var(--t);cursor:pointer}
+.sc input:checked+span{background:var(--y);border-color:var(--k);color:var(--k);font-weight:700}
+details{background:#fff;border-radius:10px;padding:10px;margin:8px 0}
+summary{cursor:pointer}
+.r{display:flex;flex-wrap:wrap;justify-content:space-between;margin:4px 0}.r small{flex-basis:100%;color:var(--m)}
+.rd{width:100%;max-width:380px;display:block;margin:0 auto}
+</style></head><body>
+<header><b>MOVEO</b><nav><a href="#/">Clienti</a><a href="#/d">Dispensa</a><a href="#/b">Backup</a></nav></header>
+<main></main>
+<script>
+const CAPS=['Apprendimento motorio','Controllo motorio','Equilibrio','Ritmo','Orientamento spazio-temporale','Reazione','Differenziazione spazio-temporale','Anticipazione motoria','Combinazione e accoppiamento','Adattamento e trasformazione','Schemi motori di base'];
+const LIV=['1 – Non riesce, o solo con aiuto','2 – Riesce a tratti, molto impreciso','3 – Riesce in condizioni stabili, con imprecisioni','4 – Riesce bene, anche con qualche variazione','5 – Fluido e sicuro anche in condizioni variabili'];
+const K='moveo-v1';
+let db;try{db=JSON.parse(localStorage.getItem(K))}catch(e){}
+db=db||{clients:[],sessions:[],evals:[],ex:[
+{id:'e1',nome:'Camminata su punte, talloni e rullata',cap:'Controllo motorio',cap2:'Equilibrio',schema:'Camminare',eta:'6+',desc:'Camminata alternando appoggio su punte, talloni e rullata del piede.',prog:''},
+{id:'e2',nome:'Gioco del semaforo',cap:'Reazione',cap2:'Differenziazione spazio-temporale',schema:'Camminare',eta:'6+',desc:'A ogni colore corrisponde una parte diversa del piede.',prog:''}]};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){alert('Salvataggio non riuscito: spazio del browser non disponibile.')}};
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,10);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const fd=d=>d?d.split('-').reverse().join('/'):'–';
+const age=n=>n?Math.floor((Date.now()-new Date(n))/31557600000):null;
+const exn=id=>(db.ex.find(e=>e.id==id)||{nome:'(esercizio eliminato)'}).nome;
+const lastS=cid=>db.sessions.filter(s=>s.cl.includes(cid)).sort((a,b)=>b.data.localeCompare(a.data))[0];
+let q='',ft='',dq='',dc='';
+
+/* Clienti */
+const list=()=>db.clients.filter(c=>(!ft||c.tipo==ft)&&c.nome.toLowerCase().includes(q.toLowerCase())).sort((a,b)=>a.nome.localeCompare(b.nome)).map(c=>{const s=lastS(c.id),a=age(c.nascita);return`<a class=card href="#/c/${c.id}/v"><span class=tag>${c.tipo=='societa'?'Società':'Privato'}</span><b>${esc(c.nome)}</b><small>${a!=null?a+' anni · ':''}ultima sessione: ${s?fd(s.data):'nessuna'}</small></a>`}).join('')||'<p class=m>Nessun cliente trovato. Aggiungine uno.</p>';
+const home=()=>`<input id=q placeholder="Cerca cliente…" value="${esc(q)}"><div class=chips>${[['','Tutti'],['privato','Privati'],['societa','Società']].map(([v,t])=>`<button class="chip ${ft==v?'on':''}" data-f="${v}">${t}</button>`).join('')}</div><div id=list>${list()}</div><a class=btn href="#/n">+ Nuovo cliente</a>`;
+
+function client(id,tab){
+ const c=db.clients.find(x=>x.id==id);if(!c)return'<p>Cliente non trovato.</p>';
+ return`<a href="#/" class=back>‹ Clienti</a><h2>${esc(c.nome)}</h2>
+ <div class=row><a class=btn href="#/s/${id}">+ Sessione</a><a class=btn href="#/v/${id}">+ Valutazione</a></div>
+ <div class=tabs>${[['v','Valutazioni'],['s','Sessioni'],['i','Info']].map(([k,t])=>`<a class="${tab==k?'on':''}" href="#/c/${id}/${k}">${t}</a>`).join('')}</div>
+ ${tab=='s'?sess(c):tab=='i'?info(c):evals(c)}`}
+
+function radar(E){
+ const n=11,R=105,C=170,pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[C+Math.cos(a)*R*v/5,C+Math.sin(a)*R*v/5].map(x=>x.toFixed(1))};
+ const ps=r=>CAPS.map((_,i)=>pt(i,r).join(',')).join(' ');
+ const poly=(e,s)=>`<polygon points="${CAPS.map((_,i)=>pt(i,e.p[i].v).join(',')).join(' ')}" ${s}/>`;
+ const f=E[0],l=E[E.length-1];
+ return`<svg viewBox="0 0 340 340" class=rd>${[1,2,3,4,5].map(r=>`<polygon points="${ps(r)}" fill="none" stroke="#ccc"/>`).join('')}${CAPS.map((_,i)=>{const[x,y]=pt(i,5.9);return`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#555">${i+1}</text>`}).join('')}${E.length>1?poly(f,'fill="#999" fill-opacity=".15" stroke="#777" stroke-dasharray="4 3" stroke-width="2"'):''}${poly(l,'fill="#FFD21F" fill-opacity=".55" stroke="#000" stroke-width="2"')}</svg>
+ <p class=m><small>${E.length>1?`Tratteggio grigio: ${fd(f.data)} · Giallo: ${fd(l.data)}`:`Valutazione del ${fd(l.data)}`}</small></p>
+ <p class=m><small>${CAPS.map((c,i)=>`${i+1} ${c}`).join(' · ')}</small></p>`}
+
+function evals(c){
+ const E=db.evals.filter(e=>e.cid==c.id).sort((a,b)=>a.data.localeCompare(b.data));
+ if(!E.length)return'<p class=m>Nessuna valutazione. Tocca “+ Valutazione” per iniziare.</p>';
+ return radar(E)+E.slice().reverse().map(e=>{const s=e.p.filter(x=>x.v),m=s.length?(s.reduce((a,x)=>a+x.v,0)/s.length).toFixed(1):'–';
+ return`<details><summary><b>${fd(e.data)}</b> ${esc(e.tipo)} · media ${m}</summary>${e.op?`<small class=m>Operatore: ${esc(e.op)}</small>`:''}${CAPS.map((c,i)=>`<p class=r><span>${i+1} ${c}</span><b>${e.p[i].v||'–'}</b>${e.p[i].n?`<small>${esc(e.p[i].n)}</small>`:''}</p>`).join('')}${[['Punti di forza',e.forza],['Aree prioritarie di lavoro',e.aree],['Considerazioni sul cliente',e.cons]].map(([t,v])=>v?`<p><b>${t}</b><br>${esc(v)}</p>`:'').join('')}<button class=lnk data-del="v:${e.id}">Elimina valutazione</button></details>`}).join('')}
+
+function sess(c){
+ const S=db.sessions.filter(s=>s.cl.includes(c.id)).sort((a,b)=>b.data.localeCompare(a.data));
+ return S.map(s=>`<div class=card><b>${fd(s.data)}</b> <small>${s.dur||'?'} min${s.cl.length>1?' · gruppo di '+s.cl.length:''}</small><ul>${s.ex.map(i=>`<li>${esc(exn(i))}</li>`).join('')}</ul>${s.note?`<small>${esc(s.note)}</small>`:''}<button class=lnk data-del="s:${s.id}">Elimina sessione</button></div>`).join('')||'<p class=m>Nessuna sessione. Tocca “+ Sessione” per registrarne una.</p>'}
+
+function info(c){const a=age(c.nascita);return`<div class=card><p>Tipo: ${c.tipo=='societa'?'Società':'Privato'}</p>${a!=null?`<p>Età: ${a} anni</p>`:''}${c.obiettivo?`<p>Obiettivo: ${esc(c.obiettivo)}</p>`:''}${c.note?`<p>${esc(c.note)}</p>`:''}</div><a class=btn href="#/m/${c.id}">Modifica cliente</a><button class=lnk data-del="c:${c.id}">Elimina cliente e tutti i suoi dati</button>`}
+
+function formC(id){const c=db.clients.find(x=>x.id==id)||{};
+ return`<a href="${id?'#/c/'+id+'/i':'#/'}" class=back>‹ Indietro</a><h2>${id?'Modifica':'Nuovo'} cliente</h2>
+ <form data-form=c data-id="${id||''}">
+ <label>Nome (meglio un alias o le iniziali)<input name=nome required value="${esc(c.nome)}"></label>
+ <label>Tipo<select name=tipo><option value=privato ${c.tipo=='privato'?'selected':''}>Privato</option><option value=societa ${c.tipo=='societa'?'selected':''}>Società</option></select></label>
+ <label>Data di nascita<input type=date name=nascita value="${c.nascita||''}"></label>
+ <label>Obiettivo<input name=obiettivo value="${esc(c.obiettivo)}"></label>
+ <label>Note<textarea name=note>${esc(c.note)}</textarea></label>
+ <button class=btn>Salva cliente</button></form>`}
+
+function formS(cid){
+ const c=db.clients.find(x=>x.id==cid);if(!c)return'<p>Cliente non trovato.</p>';
+ const last=lastS(cid),use={};db.sessions.forEach(s=>s.ex.forEach(i=>use[i]=(use[i]||0)+1));
+ const X=[...db.ex].sort((a,b)=>(use[b.id]||0)-(use[a.id]||0)||a.nome.localeCompare(b.nome));
+ return`<a href="#/c/${cid}/s" class=back>‹ ${esc(c.nome)}</a><h2>Nuova sessione</h2>
+ <form data-form=s data-id="${cid}">
+ <div class=row><label>Data<input type=date name=data value="${today()}"></label><label>Durata (minuti)<input type=number name=dur value=20></label></div>
+ ${db.clients.length>1?`<details><summary>Sessione di gruppo: aggiungi altri clienti</summary>${db.clients.filter(x=>x.id!=cid).map(x=>`<label class=ck><input type=checkbox name=cl value="${x.id}"> ${esc(x.nome)}</label>`).join('')}</details>`:''}
+ <input id=xq placeholder="Cerca esercizio…">
+ ${last?`<button type=button class=lnk id=dup data-ids="${last.ex.join(',')}">Ripeti gli esercizi dell’ultima sessione</button>`:''}
+ <div id=xl class=xl>${X.map(e=>`<label class=ck data-n="${esc((e.nome+' '+e.cap).toLowerCase())}"><input type=checkbox name=ex value="${e.id}"> <span>${esc(e.nome)} <small>${esc(e.cap)}</small></span></label>`).join('')||'<p class=m>La dispensa è vuota.</p>'}</div>
+ <label>Note<textarea name=note></textarea></label>
+ <button class=btn>Salva sessione</button></form>`}
+
+function formV(cid){
+ const c=db.clients.find(x=>x.id==cid);if(!c)return'<p>Cliente non trovato.</p>';
+ const prev=db.evals.filter(e=>e.cid==cid).sort((a,b)=>b.data.localeCompare(a.data))[0];
+ return`<a href="#/c/${cid}/v" class=back>‹ ${esc(c.nome)}</a><h2>Nuova valutazione</h2>
+ <form data-form=v data-id="${cid}">
+ <div class=row><label>Data<input type=date name=data value="${today()}"></label><label>Tipo<select name=tipo><option>Iniziale</option><option ${prev?'selected':''}>Intermedia</option><option>Finale</option></select></label></div>
+ <label>Operatore<input name=op value="${esc(prev&&prev.op)}"></label>
+ <details><summary>Cosa significa ogni livello</summary>${LIV.map(l=>`<p>${l}</p>`).join('')}</details>
+ ${CAPS.map((n,i)=>`<div class=cap><b>${i+1} · ${n}</b><div class=sc>${[1,2,3,4,5].map(v=>`<label><input type=radio name="v${i}" value=${v}><span>${v}</span></label>`).join('')}</div><input name="n${i}" placeholder="Priorità e osservazioni"></div>`).join('')}
+ <label>Punti di forza<textarea name=forza></textarea></label>
+ <label>Aree prioritarie di lavoro<textarea name=aree></textarea></label>
+ <label>Considerazioni sul cliente<textarea name=cons></textarea></label>
+ <button class=btn>Salva valutazione</button></form>`}
+
+/* Dispensa */
+const dl=()=>db.ex.filter(e=>(!dc||e.cap==dc||e.cap2==dc)&&(e.nome+' '+(e.schema||'')+' '+(e.desc||'')).toLowerCase().includes(dq.toLowerCase())).sort((a,b)=>a.cap.localeCompare(b.cap)||a.nome.localeCompare(b.nome)).map(e=>`<a class=card href="#/e/${e.id}"><b>${esc(e.nome)}</b><small>${esc(e.cap)}${e.cap2?' + '+esc(e.cap2):''}${e.schema?' · '+esc(e.schema):''}${e.eta?' · '+esc(e.eta)+' anni':''}</small>${e.desc?`<small>${esc(e.desc)}</small>`:''}</a>`).join('')||'<p class=m>Nessun esercizio trovato.</p>';
+const dispensa=()=>`<h2>Dispensa esercizi</h2><input id=dq placeholder="Cerca esercizio…" value="${esc(dq)}"><label>Capacità coordinativa<select id=dc><option value="">Tutte</option>${CAPS.map(c=>`<option ${dc==c?'selected':''}>${c}</option>`).join('')}</select></label><div id=dl>${dl()}</div><a class=btn href="#/e/new">+ Nuovo esercizio</a>`;
+
+function formE(id){
+ const e=db.ex.find(x=>x.id==id)||{},opt=(v,none)=>(none?'<option value="">–</option>':'')+CAPS.map(c=>`<option ${v==c?'selected':''}>${c}</option>`).join('');
+ return`<a href="#/d" class=back>‹ Dispensa</a><h2>${id?'Modifica':'Nuovo'} esercizio</h2>
+ <form data-form=e data-id="${id||''}">
+ <label>Nome<input name=nome required value="${esc(e.nome)}"></label>
+ <label>Capacità principale<select name=cap>${opt(e.cap)}</select></label>
+ <label>Capacità secondaria<select name=cap2>${opt(e.cap2,1)}</select></label>
+ <div class=row><label>Schema motorio<input name=schema value="${esc(e.schema)}"></label><label>Fascia d’età<input name=eta value="${esc(e.eta)}"></label></div>
+ <label>Descrizione e consegna<textarea name=desc>${esc(e.desc)}</textarea></label>
+ <label>Progressioni e regressioni<textarea name=prog>${esc(e.prog)}</textarea></label>
+ <button class=btn>Salva esercizio</button>${id?`<button type=button class=lnk data-del="e:${id}">Elimina esercizio</button>`:''}</form>`}
+
+const backup=()=>`<h2>Backup</h2><p class=m>I dati restano solo in questo browser, su questo dispositivo. Esporta un backup ogni tanto e conservalo fuori da GitHub.</p><button class=btn id=exp>Esporta backup</button><label>Importa un backup<input type=file id=imp accept=".json"></label>`;
+
+/* Navigazione */
+function render(){
+ const[a,b,c]=location.hash.slice(2).split('/');
+ $('main').innerHTML=a=='c'?client(b,c||'v'):a=='n'?formC():a=='m'?formC(b):a=='s'?formS(b):a=='v'?formV(b):a=='d'?dispensa():a=='e'?formE(b=='new'?'':b):a=='b'?backup():home();
+ scrollTo(0,0)}
+addEventListener('hashchange',render);
+
+document.addEventListener('submit',ev=>{
+ ev.preventDefault();const f=ev.target,k=f.dataset.form,id=f.dataset.id,d=new FormData(f);
+ if(k=='c'){const o={nome:d.get('nome').trim(),tipo:d.get('tipo'),nascita:d.get('nascita'),obiettivo:d.get('obiettivo'),note:d.get('note')};
+  if(id)Object.assign(db.clients.find(x=>x.id==id),o);else{o.id=uid();db.clients.push(o)}
+  save();location.hash=id?'#/c/'+id+'/i':'#/c/'+o.id+'/v'}
+ if(k=='s'){db.sessions.push({id:uid(),cl:[id,...d.getAll('cl')],data:d.get('data'),dur:+d.get('dur')||0,ex:d.getAll('ex'),note:d.get('note')});save();location.hash='#/c/'+id+'/s'}
+ if(k=='v'){db.evals.push({id:uid(),cid:id,data:d.get('data'),tipo:d.get('tipo'),op:d.get('op'),p:CAPS.map((_,i)=>({v:+d.get('v'+i)||0,n:d.get('n'+i)||''})),forza:d.get('forza'),aree:d.get('aree'),cons:d.get('cons')});save();location.hash='#/c/'+id+'/v'}
+ if(k=='e'){const o={nome:d.get('nome').trim(),cap:d.get('cap'),cap2:d.get('cap2'),schema:d.get('schema'),eta:d.get('eta'),desc:d.get('desc'),prog:d.get('prog')};
+  if(id)Object.assign(db.ex.find(x=>x.id==id),o);else{o.id=uid();db.ex.push(o)}
+  save();location.hash='#/d'}});
+
+document.addEventListener('click',ev=>{
+ const t=ev.target.closest('[data-f],[data-del],#dup,#exp');if(!t)return;
+ if(t.dataset.f!==undefined){ft=t.dataset.f;render()}
+ else if(t.dataset.del){const[k,id]=t.dataset.del.split(':');if(!confirm('Eliminare definitivamente?'))return;
+  if(k=='s')db.sessions=db.sessions.filter(x=>x.id!=id);
+  if(k=='v')db.evals=db.evals.filter(x=>x.id!=id);
+  if(k=='e')db.ex=db.ex.filter(x=>x.id!=id);
+  if(k=='c'){db.clients=db.clients.filter(x=>x.id!=id);db.evals=db.evals.filter(x=>x.cid!=id);db.sessions.forEach(s=>s.cl=s.cl.filter(x=>x!=id));db.sessions=db.sessions.filter(s=>s.cl.length)}
+  save();location.hash=k=='c'?'#/':k=='e'?'#/d':location.hash;render()}
+ else if(t.id=='dup'){const ids=t.dataset.ids.split(',');document.querySelectorAll('[name=ex]').forEach(i=>i.checked=ids.includes(i.value))}
+ else if(t.id=='exp'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,1)],{type:'application/json'}));a.download='moveo-backup-'+today()+'.json';a.click()}});
+
+document.addEventListener('input',ev=>{const t=ev.target;
+ if(t.id=='q'){q=t.value;$('#list').innerHTML=list()}
+ if(t.id=='dq'){dq=t.value;$('#dl').innerHTML=dl()}
+ if(t.id=='xq')document.querySelectorAll('#xl label').forEach(l=>l.hidden=!l.dataset.n.includes(t.value.toLowerCase()))});
+
+document.addEventListener('change',ev=>{const t=ev.target;
+ if(t.id=='dc'){dc=t.value;$('#dl').innerHTML=dl()}
+ if(t.id=='imp'&&t.files[0]){const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!Array.isArray(o.clients))throw 0;if(!confirm('Sostituire tutti i dati attuali con il backup?'))return;db=o;save();render()}catch(x){alert('File non valido.')}};r.readAsText(t.files[0])}});
+
+render();
+</script></body></html>
